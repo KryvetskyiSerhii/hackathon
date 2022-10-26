@@ -12,7 +12,7 @@ const canvas = document.querySelector("canvas.webgl");
 
 const scene = new THREE.Scene();
 
-const geometry = new THREE.SphereGeometry(0.5, 15, 15, 32);
+const geometry = new THREE.SphereGeometry(0.2, 15, 32, 16);
 
 const material = new THREE.MeshStandardMaterial({
   color: 0x292929,
@@ -85,12 +85,44 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+let mouseX = 0;
+let mouseY = 0;
+let targetX = 0;
+let targetY = 0;
+let mouseXClicked = 100;
+let mouseYClicked = 100;
+
+const windowHalfX = window.innerWidth / 2;
+const windowHalfY = window.innerHeight / 2;
+
+const handleDocumentMouseMove = (e) => {
+  mouseX = e.clientX - windowHalfX;
+  mouseY = e.clientY - windowHalfY;
+};
+
+const handleDocumentClick = (e) => {
+  mouseXClicked = e.pageX;
+  mouseYClicked = e.pageY;
+  console.log(e.pageX);
+};
+
+document.addEventListener("mousemove", handleDocumentMouseMove);
+document.addEventListener("click", handleDocumentClick);
+
 const clock = new THREE.Clock();
 
 const tick = () => {
+  targetX = mouseX * 0.001;
+  targetY = mouseY * 0.001;
+
   const elapsedTime = clock.getElapsedTime();
 
   sphere.rotation.y = 0.6 * elapsedTime;
+  sphere.rotation.y += 0.6 * (targetX - sphere.rotation.y);
+  sphere.rotation.x += 0.6 * (targetY - sphere.rotation.x);
+
+  sphere.position.x = mouseXClicked * 0.001;
+  sphere.position.y = mouseYClicked * 0.001;
 
   renderer.render(scene, camera);
 
