@@ -3,25 +3,36 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
 
+const textureLoader = new THREE.TextureLoader();
+const normalTexture = textureLoader.load("/texture/NormalMap.png");
+
 const gui = new dat.GUI();
 
 const canvas = document.querySelector("canvas.webgl");
 
 const scene = new THREE.Scene();
 
-const geometry = new THREE.SphereGeometry(1, 15, 5, 100);
+const geometry = new THREE.SphereGeometry(0.5, 15, 15, 32);
 
-const material = new THREE.MeshBasicMaterial();
-material.color = new THREE.Color(0xff0000);
+const material = new THREE.MeshStandardMaterial({
+  color: 0x292929,
+  roughness: 0.7,
+  metalness: 0.2,
+});
+material.normalMap = normalTexture;
 
 const sphere = new THREE.Mesh(geometry, material);
 scene.add(sphere);
 
-const pointLight = new THREE.PointLight(0xffffff, 0.1);
+const pointLight = new THREE.PointLight(0xffffff, 0.5);
 pointLight.position.x = 2;
 pointLight.position.y = 3;
 pointLight.position.z = 4;
 scene.add(pointLight);
+
+const pointLight2 = new THREE.PointLight(0xff0000, 2);
+pointLight2.position.set(4, 3, 4);
+scene.add(pointLight2);
 
 const sizes = {
   width: window.innerWidth,
@@ -52,6 +63,7 @@ scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({
   canvas: canvas,
+  alpha: true,
 });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
