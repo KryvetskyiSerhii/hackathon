@@ -10,6 +10,7 @@ body
     height: 100vh;
     font-family: 'Poppins';
     background-color: rgb(24,24, 24);
+    cursor: none;
 }
 
 .webgl
@@ -18,4 +19,9 @@ body
     top: 0;
     left: 0;
     outline: none;
+}
+
+.text {
+    z-index: 20;
+    color: #fff;
 }

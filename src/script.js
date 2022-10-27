@@ -5,6 +5,7 @@ import * as dat from "dat.gui";
 
 const textureLoader = new THREE.TextureLoader();
 const normalTexture = textureLoader.load("/texture/NormalMap.png");
+const crossFire = textureLoader.load("/texture/crossfire.png");
 
 const gui = new dat.GUI();
 
@@ -12,33 +13,49 @@ const canvas = document.querySelector("canvas.webgl");
 
 const scene = new THREE.Scene();
 
-const geometry = new THREE.SphereGeometry(0.2, 15, 32, 16);
+const geometry = new THREE.PlaneGeometry(0.2, 0.2, 1, 10);
 
 const material = new THREE.MeshStandardMaterial({
-  color: 0x292929,
+  color: 0xffffff,
   roughness: 0.7,
   metalness: 0.2,
 });
-material.normalMap = normalTexture;
+material.normalMap = crossFire;
 
 const sphere = new THREE.Mesh(geometry, material);
 sphere.position.x = 1;
 scene.add(sphere);
 
-// setInterval(() => {
-//   const enemyGeometry = new THREE.SphereGeometry(0.15, 15, 32, 16);
-//   const enemyMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-//   const enemy = new THREE.Mesh(enemyGeometry, enemyMaterial);
-//   if (Math.random() > 0.5) {
-//     enemy.position.x = Math.random() * -1;
-//     enemy.position.y = Math.random();
-//   } else {
-//     enemy.position.x = Math.random();
-//     enemy.position.y = Math.random() * -1;
-//   }
+let enemiesNumber = 0;
+let message = "";
 
-//   scene.add(enemy);
-// }, 3000);
+const interval = setInterval(() => {
+  const enemyGeometry = new THREE.SphereGeometry(0.15, 15, 32, 16);
+  const enemyMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const enemy = new THREE.Mesh(enemyGeometry, enemyMaterial);
+  if (Math.random() > 0.5) {
+    enemy.position.x = Math.random() * -1;
+    enemy.position.y = Math.random();
+  } else {
+    enemy.position.x = Math.random();
+    enemy.position.y = Math.random() * -1;
+  }
+  enemy.name = Math.random();
+  enemiesNumber += 1;
+  scene.add(enemy);
+}, 3000);
+
+const checkInterval = setInterval(() => {
+  if (enemiesNumber > 3) {
+    message = "Loser";
+    console.log("loser");
+    const showMessage = document.createElement("p");
+    showMessage.innerText = "Loser";
+    showMessage.classList.add("text");
+    document.body.appendChild(showMessage);
+    clearInterval(interval);
+  }
+}, 1000);
 
 const pointLight = new THREE.PointLight(0xffffff, 0.5);
 pointLight.position.x = 2;
@@ -46,23 +63,23 @@ pointLight.position.y = 3;
 pointLight.position.z = 4;
 scene.add(pointLight);
 
-const pointLight2 = new THREE.PointLight(0xff0000, 2);
-pointLight2.position.set(4, 3, 4);
-scene.add(pointLight2);
+// const pointLight2 = new THREE.PointLight(0xff0000, 2);
+// pointLight2.position.set(4, 3, 4);
+// scene.add(pointLight2);
 
-const light2Gui = gui.addFolder("Light");
+// const light2Gui = gui.addFolder("Light");
 
-light2Gui.add(pointLight2.position, "y").min(-10).max(10).step(0.1);
-light2Gui.add(pointLight2.position, "x").min(-10).max(10).step(0.1);
-light2Gui.add(pointLight2.position, "z").min(-10).max(10).step(0.1);
+// light2Gui.add(pointLight2.position, "y").min(-10).max(10).step(0.1);
+// light2Gui.add(pointLight2.position, "x").min(-10).max(10).step(0.1);
+// light2Gui.add(pointLight2.position, "z").min(-10).max(10).step(0.1);
 
-const lightColor = {
-  color: 0xff0000,
-};
+// const lightColor = {
+//   color: 0xff0000,
+// };
 
-light2Gui.addColor(lightColor, "color").onChange(() => {
-  pointLight2.color.set(lightColor.color);
-});
+// light2Gui.addColor(lightColor, "color").onChange(() => {
+//   pointLight2.color.set(lightColor.color);
+// });
 
 const sizes = {
   width: window.innerWidth,
@@ -111,10 +128,20 @@ const handleMouseMove = (e) => {
   plane.setFromNormalAndCoplanarPoint(planeNormal, scene.position);
   raycaster.setFromCamera(mouse, camera);
   raycaster.ray.intersectPlane(plane, intersectionPoint);
+  sphere.position.copy(intersectionPoint);
 };
 
-const handleDocumentClick = () => {
-  sphere.position.copy(intersectionPoint);
+const handleDocumentClick = (e) => {
+  // sphere.position.copy(intersectionPoint);
+
+  const intersection = raycaster.intersectObjects(scene.children);
+  if (intersection.length > 0) {
+    const objName = intersection[0].object.name;
+    console.log(objName);
+    const obj = scene.getObjectByName(objName);
+    scene.remove(obj);
+    enemiesNumber -= 1;
+  }
 };
 
 window.addEventListener("click", handleDocumentClick);
@@ -124,9 +151,10 @@ const clock = new THREE.Clock();
 const tick = () => {
   const elapsedTime = clock.getElapsedTime();
 
-  sphere.rotation.y = 0.6 * elapsedTime;
+  // sphere.rotation.y = 0.6 * elapsedTime;
 
   renderer.render(scene, camera);
+  if (message.length > 0) clearInterval(checkInterval);
 
   window.requestAnimationFrame(tick);
 };
