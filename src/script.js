@@ -22,7 +22,23 @@ const material = new THREE.MeshStandardMaterial({
 material.normalMap = normalTexture;
 
 const sphere = new THREE.Mesh(geometry, material);
+sphere.position.x = 1;
 scene.add(sphere);
+
+// setInterval(() => {
+//   const enemyGeometry = new THREE.SphereGeometry(0.15, 15, 32, 16);
+//   const enemyMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+//   const enemy = new THREE.Mesh(enemyGeometry, enemyMaterial);
+//   if (Math.random() > 0.5) {
+//     enemy.position.x = Math.random() * -1;
+//     enemy.position.y = Math.random();
+//   } else {
+//     enemy.position.x = Math.random();
+//     enemy.position.y = Math.random() * -1;
+//   }
+
+//   scene.add(enemy);
+// }, 3000);
 
 const pointLight = new THREE.PointLight(0xffffff, 0.5);
 pointLight.position.x = 2;
@@ -47,9 +63,6 @@ const lightColor = {
 light2Gui.addColor(lightColor, "color").onChange(() => {
   pointLight2.color.set(lightColor.color);
 });
-
-// const pointLightHelper = new THREE.PointLightHelper(pointLight2, 1);
-// scene.add(pointLightHelper);
 
 const sizes = {
   width: window.innerWidth,
@@ -85,44 +98,33 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-let mouseX = 0;
-let mouseY = 0;
-let targetX = 0;
-let targetY = 0;
-let mouseXClicked = 100;
-let mouseYClicked = 100;
+const mouse = new THREE.Vector2();
+const intersectionPoint = new THREE.Vector3();
+const planeNormal = new THREE.Vector3();
+const plane = new THREE.Plane();
+const raycaster = new THREE.Raycaster();
 
-const windowHalfX = window.innerWidth / 2;
-const windowHalfY = window.innerHeight / 2;
-
-const handleDocumentMouseMove = (e) => {
-  mouseX = e.clientX - windowHalfX;
-  mouseY = e.clientY - windowHalfY;
+const handleMouseMove = (e) => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  planeNormal.copy(camera.position).normalize();
+  plane.setFromNormalAndCoplanarPoint(planeNormal, scene.position);
+  raycaster.setFromCamera(mouse, camera);
+  raycaster.ray.intersectPlane(plane, intersectionPoint);
 };
 
-const handleDocumentClick = (e) => {
-  mouseXClicked = e.pageX;
-  mouseYClicked = e.pageY;
-  console.log(e.pageX);
+const handleDocumentClick = () => {
+  sphere.position.copy(intersectionPoint);
 };
 
-document.addEventListener("mousemove", handleDocumentMouseMove);
-document.addEventListener("click", handleDocumentClick);
-
+window.addEventListener("click", handleDocumentClick);
+window.addEventListener("mousemove", handleMouseMove);
 const clock = new THREE.Clock();
 
 const tick = () => {
-  targetX = mouseX * 0.001;
-  targetY = mouseY * 0.001;
-
   const elapsedTime = clock.getElapsedTime();
 
   sphere.rotation.y = 0.6 * elapsedTime;
-  sphere.rotation.y += 0.6 * (targetX - sphere.rotation.y);
-  sphere.rotation.x += 0.6 * (targetY - sphere.rotation.x);
-
-  sphere.position.x = mouseXClicked * 0.001;
-  sphere.position.y = mouseYClicked * 0.001;
 
   renderer.render(scene, camera);
 
