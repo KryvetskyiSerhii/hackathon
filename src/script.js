@@ -2,12 +2,15 @@ import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 const textureLoader = new THREE.TextureLoader();
 const normalTexture = textureLoader.load("/texture/NormalMap.png");
 const crossFire = textureLoader.load("/texture/crossfire.png");
 const blast = textureLoader.load("/texture/blast.png");
-const gui = new dat.GUI();
+const monster = textureLoader.load("/texture/monster.png");
+
+// const gui = new dat.GUI();
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -28,32 +31,68 @@ scene.add(sphere);
 
 let enemiesNumber = 0;
 let message = "";
+let sec = 1000;
+let score = 0;
+let scoreField = document.createElement("div");
+scoreField.innerText = `Total score: ${score}`;
+scoreField.classList.add("score");
+document.body.appendChild(scoreField);
+
+const HahaList = [
+  "My garndma can do better",
+  "Did you even aim?",
+  "Try harder because headstones are expensive!",
+  "That is a dead end",
+  "They are gonna eat you",
+  "Just shoot them",
+  "My garndma can do better",
+  "Did you even aim?",
+  "Try harder because headstones are expensive!",
+  "They are gonna eat you",
+  "Just shoot them",
+];
+
+const updateScore = () => {
+  scoreField.innerText = `Total score: ${score}`;
+};
+
+// const gltfLoader = new GLTFLoader();
+// gltfLoader.load("/texture/enemy/scene.gltf", (gltfScene) => {
+//   gltfScene.scene.scale.set(0.1, 0.1, 0.1);
+//   scene.add(gltfScene.scene);
+// });
 
 const interval = setInterval(() => {
-  const enemyGeometry = new THREE.SphereGeometry(0.15, 15, 32, 16);
-  const enemyMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const enemyGeometry = new THREE.PlaneGeometry(0.2, 0.2, 1, 1);
+  const enemyMaterial = new THREE.MeshStandardMaterial();
+  enemyMaterial.normalMap = monster;
   const enemy = new THREE.Mesh(enemyGeometry, enemyMaterial);
   if (Math.random() > 0.5) {
     enemy.position.x = Math.random() * -1;
     enemy.position.y = Math.random();
+    enemy.position.z = 0.1;
   } else {
     enemy.position.x = Math.random();
     enemy.position.y = Math.random() * -1;
+    enemy.position.z = 0.1;
   }
   enemy.name = Math.random();
   enemiesNumber += 1;
+
   scene.add(enemy);
-}, 3000);
+}, sec);
 
 const checkInterval = setInterval(() => {
-  if (enemiesNumber > 3) {
+  if (enemiesNumber > 5) {
     message = "Loser";
-    console.log("loser");
     const showMessage = document.createElement("p");
     showMessage.innerText = "Loser";
     showMessage.classList.add("text");
     document.body.appendChild(showMessage);
     clearInterval(interval);
+    setInterval(() => {
+      showMessage.classList.add("loser");
+    }, 0);
   }
 }, 1000);
 
@@ -117,10 +156,21 @@ const handleDocumentClick = (e) => {
   const intersection = raycaster.intersectObjects(scene.children);
   if (intersection.length > 0) {
     const objName = intersection[0].object.name;
-    console.log(objName);
     const obj = scene.getObjectByName(objName);
-    scene.remove(obj);
-    enemiesNumber -= 1;
+    if (obj.geometry && message.length === 0) {
+      scene.remove(obj);
+      enemiesNumber -= 1;
+      score += 1;
+      updateScore();
+    } else {
+      const hahaMessage = document.createElement("div");
+      hahaMessage.innerText = `${HahaList[Math.floor(Math.random() * 10) - 1]}`;
+      hahaMessage.classList.add("missed");
+      document.body.appendChild(hahaMessage);
+      setTimeout(() => {
+        document.body.removeChild(hahaMessage);
+      }, 700);
+    }
   }
   const blastGeometry = new THREE.PlaneGeometry(0.5, 0.5, 1, 10);
   const blastMaterial = new THREE.MeshStandardMaterial();
@@ -143,6 +193,7 @@ const tick = () => {
   const elapsedTime = clock.getElapsedTime();
 
   renderer.render(scene, camera);
+
   if (message.length > 0) clearInterval(checkInterval);
 
   window.requestAnimationFrame(tick);

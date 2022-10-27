@@ -22,6 +22,37 @@ body
 }
 
 .text {
+    position: absolute;
+    top: 50%;
+    right: 50%;
     z-index: 20;
     color: #fff;
+    font-size: 5px;
+}
+
+.loser {
+    font-size: 60px;
+    transition: all 0.5s ease-in;
+}
+
+
+
+
+.score {
+    position: absolute;
+    top: 100px;
+    right: 200px;
+    color: #fff;
+    font-size: 20px;
+    z-index: 20;
+}
+
+
+.missed {
+    position: absolute;
+    top: 0;
+    right: 50%;
+    color: #fff;
+    font-size: 40px;
+    z-index: 20;
 }
