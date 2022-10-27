@@ -6,7 +6,7 @@ import * as dat from "dat.gui";
 const textureLoader = new THREE.TextureLoader();
 const normalTexture = textureLoader.load("/texture/NormalMap.png");
 const crossFire = textureLoader.load("/texture/crossfire.png");
-
+const blast = textureLoader.load("/texture/blast.png");
 const gui = new dat.GUI();
 
 const canvas = document.querySelector("canvas.webgl");
@@ -63,24 +63,6 @@ pointLight.position.y = 3;
 pointLight.position.z = 4;
 scene.add(pointLight);
 
-// const pointLight2 = new THREE.PointLight(0xff0000, 2);
-// pointLight2.position.set(4, 3, 4);
-// scene.add(pointLight2);
-
-// const light2Gui = gui.addFolder("Light");
-
-// light2Gui.add(pointLight2.position, "y").min(-10).max(10).step(0.1);
-// light2Gui.add(pointLight2.position, "x").min(-10).max(10).step(0.1);
-// light2Gui.add(pointLight2.position, "z").min(-10).max(10).step(0.1);
-
-// const lightColor = {
-//   color: 0xff0000,
-// };
-
-// light2Gui.addColor(lightColor, "color").onChange(() => {
-//   pointLight2.color.set(lightColor.color);
-// });
-
 const sizes = {
   width: window.innerWidth,
   height: window.innerHeight,
@@ -132,8 +114,6 @@ const handleMouseMove = (e) => {
 };
 
 const handleDocumentClick = (e) => {
-  // sphere.position.copy(intersectionPoint);
-
   const intersection = raycaster.intersectObjects(scene.children);
   if (intersection.length > 0) {
     const objName = intersection[0].object.name;
@@ -142,6 +122,17 @@ const handleDocumentClick = (e) => {
     scene.remove(obj);
     enemiesNumber -= 1;
   }
+  const blastGeometry = new THREE.PlaneGeometry(0.5, 0.5, 1, 10);
+  const blastMaterial = new THREE.MeshStandardMaterial();
+  blastMaterial.normalMap = blast;
+  const blastObj = new THREE.Mesh(blastGeometry, blastMaterial);
+  blastObj.name = "blast";
+  blastObj.position.copy(intersectionPoint);
+  scene.add(blastObj);
+  setTimeout(() => {
+    const obj = scene.getObjectByName("blast");
+    scene.remove(obj);
+  }, 300);
 };
 
 window.addEventListener("click", handleDocumentClick);
@@ -150,8 +141,6 @@ const clock = new THREE.Clock();
 
 const tick = () => {
   const elapsedTime = clock.getElapsedTime();
-
-  // sphere.rotation.y = 0.6 * elapsedTime;
 
   renderer.render(scene, camera);
   if (message.length > 0) clearInterval(checkInterval);
